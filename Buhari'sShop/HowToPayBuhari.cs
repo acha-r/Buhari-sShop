@@ -1,91 +1,107 @@
-﻿namespace Buhari_sShop
+﻿using System.Text.RegularExpressions;
+
+namespace Buhari_sShop
 {
 
-    internal class HowToPayBuhari
+    internal partial class HowToPayBuhari
     {
-        public string CustomerName { get; init; }
-        public decimal AmtToPay { get; init; }
+        private static DateOnly dayOfPurchase = DateOnly.FromDateTime(DateTime.Now);
+        private static DateOnly dueDate = default;
+
+        public string CustomerName { get; set; }
+        public decimal AmtToPay { get; set; }
         private static decimal FirstDeposit { get; set; }
         private static decimal AmtRemaining { get; set; }
-        private bool PaymentCompleted { get; set; }
-        public DateTime PaymentDuration { get; set; }
+        private string PaymentDuration { get; set; }
 
-        List<HowToPayBuhari> weeklyInstallment = new List<HowToPayBuhari>();
-        List<HowToPayBuhari> biWeeklyInstallment = new List<HowToPayBuhari>();
-        List<HowToPayBuhari> monthlyInstallment = new List<HowToPayBuhari>();
-        List<HowToPayBuhari> sixMonthInstallment = new List<HowToPayBuhari>();
-        List<HowToPayBuhari> yearlyInstallment = new List<HowToPayBuhari>();
+        List<string> DailyInstallmentList = new List<string>();
+        List<string> WeeklyInstallmentList = new List<string>();
+        List<string> MonthlyInstallmentList = new List<string>();
+        List<string> YearlyInstallmentList = new List<string>();
 
         public HowToPayBuhari()
         {
+            DailyInstallmentList.Add("Jimo\t\t\t\tN 20000");
+            DailyInstallmentList.Add("Nkeiru\t\t\t\tN 12000");
+            WeeklyInstallmentList.Add("Jimo\t\t\t\tN 40000");
+            WeeklyInstallmentList.Add("Nkeiru\t\t\t\tN 32000");
+            MonthlyInstallmentList.Add("Jimo\t\t\t\tN 300000");
+            MonthlyInstallmentList.Add("Nkeiru\t\t\t\tN 402000");
+            YearlyInstallmentList.Add("Jimo\t\t\t\tN 2000000");
+            YearlyInstallmentList.Add("Nkeiru\t\t\t\tN 12000000");
 
+            Console.Title = "Bubu's Shop";
+            GetCustomerDetails();
+            ChoosePaymentPlan();
         }
 
-        public HowToPayBuhari(string custName, decimal amt)
+        public string GetCustomerDetails()
         {
-            CustomerName = custName;
-            AmtToPay = amt;
-
-            PaymentPlan();
-        }
-
-
-        private decimal DailyPlan()
-        {
-            decimal dailyAmt = 0;
+            Regex regex = new Regex("[^a-zA-z ]");
+        custName:
+            Console.WriteLine("Enter customer name below");
 
             try
             {
-                if (AmtToPay < 1500)
-                {
-                    throw new WrongPlanException("Amount to pay MUST be greater than or equal to N1500. Cannot create plan\n");
-                }
-                else
-                {
-                    FirstDeposit = AmtToPay / 10;
-                    AmtRemaining = AmtToPay - FirstDeposit;
-                    dailyAmt = decimal.Round((AmtRemaining / 7), 2);
-                    PaymentDuration = DateTime.Now.AddDays(7);
+                CustomerName = Console.ReadLine().ToUpper().Trim();
+                Console.Clear();
+                if (regex.IsMatch(CustomerName) || string.IsNullOrEmpty(CustomerName)) throw new InvalidCustomerNameException($"Sorry, the name, " +
+                    $"{CustomerName} contains invalid characters. Please try again\n");
 
-                    Console.WriteLine($"{CustomerName}'s payment information\nTotal amount to pay: N{AmtToPay}\nFirst deposit: N{FirstDeposit}\n\n" +
-                        $"Remaining payment: {AmtRemaining}\nDaily payment of {dailyAmt}\nDuration: from {DateTime.Now}\n          till {PaymentDuration}");
-                }
             }
-            catch (WrongPlanException e)
+            catch (InvalidCustomerNameException e)
             {
                 Console.WriteLine(e.Message);
-                PaymentPlan();
+                goto custName;
             }
-            return dailyAmt;
-        }
-
-        public void PaymentPlan()
-        {
-            Console.WriteLine($"Choose payment plan for {CustomerName}. Press\n1. Daily plan\n2. Weekly plan\n3. Bi-weekly plan\n4. Monthly plan\n5. Six-month plan" +
-                "\n6. Yearly plan\n");
-
-            string buhariInput = Console.ReadLine();
-
-            switch (buhariInput)
+            catch (Exception e)
             {
-                case "1":
-                    DailyPlan();
-                    break;
-                case "2":
-                    //WeeklyPlan();
-                    break;
-
-
+                Console.WriteLine(e.Message);
+                goto custName;
             }
 
+            Console.WriteLine("Enter total worth of goods");
+        amount:
+            try
+            {
+                AmtToPay = decimal.Parse(Console.ReadLine());
+                if (AmtToPay < 10000)
+                {
+                    throw new InvalidAmountException("\nSorry, Cannot create any plan for purchase less than N 10,000.\n");
+                }
+                else if (AmtToPay > 20_000_000)
+                {
+                    throw new InvalidAmountException("\nEhm, unless, this person is buying the shop, this amount is not possible\n");
+                }
+                Console.Clear();
+            }
+            catch (InvalidAmountException e)
+            {
+                Console.WriteLine(e.Message);
+            retry:
+                Console.WriteLine("Press\n1. to exit\n2. To input new purchase information\n");
+                string nextSteps = Console.ReadLine();
+                Console.Clear();
+                switch (nextSteps)
+                {
+                    case "1":
+                        Environment.Exit(0);
+                        break;
+                    case "2":
+                        goto custName;
+                    default:
+                        Console.WriteLine("Invalid input.");
+                        goto retry;
+                }
+            }
+            catch (FormatException e)
+            {
+                Console.WriteLine(e.Message);
+                Console.Clear();
+                Console.WriteLine("Bubu enter a valid amount");
+                goto amount;
+            }
+            return CustomerName;
         }
-
-        /* public void AddToRecord()
-         {
-             HowToPayBuhari payy = new HowToPayBuhari(CustomerName, AmtToPay);
-             if (pa)
-         }*/
-
-
     }
 }

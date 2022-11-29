@@ -12,13 +12,8 @@
     internal class Program
     {
         static void Main(string[] args)
-
         {
-            Console.WriteLine("Hello Bubu\n");
-
-            HowToPayBuhari payBuhari = new HowToPayBuhari("John", 2700);
-
-         
+            Application.Start();
         }
     }
 }
